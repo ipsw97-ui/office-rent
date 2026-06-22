@@ -1,33 +1,32 @@
-<!DOCTYPE html>
-<html lang="ko">
+const WORKER_URL = "https://fragrant-silence-2172.ipsw97.workers.dev/";
 
-<head>
-    <meta charset="UTF-8">
-    <title>오피스 임대료 실시간 차트</title>
+fetch(WORKER_URL)
+  .then(res => res.json())
+  .then(data => {
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    const rows = data.SttsApiTblData[1].row;
 
-    <style>
+    // 1. 전체 데이터 출력
+    console.log(rows);
 
-        body{
-            margin:30px;
-            font-family:Arial;
-        }
+    // 2. 화면에 리스트로 표시
+    const container = document.getElementById("output");
 
-        h2{
-            text-align:center;
-        }
+    rows.forEach(item => {
+      const div = document.createElement("div");
 
-        canvas{
-            max-width:1200px;
-            height:600px;
-            margin:auto;
-        }
+      div.innerHTML = `
+        <b>${item.CLS_FULLNM}</b> :
+        ${item.DTA_VAL} ${item.UI_NM}
+      `;
 
-    </style>
+      container.appendChild(div);
+    });
 
-</head>
-
+  })
+  .catch(err => {
+    console.error(err);
+  });
 <body>
 
 <h2>오피스 임대료(실시간 OpenAPI)</h2>
