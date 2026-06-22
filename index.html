@@ -27,12 +27,6 @@ fetch(WORKER_URL)
 
     const container = document.getElementById("output");
 
-    rows.forEach(item => {
-      const div = document.createElement("div");
-      div.innerHTML = `${item.CLS_FULLNM} : ${item.DTA_VAL}`;
-      container.appendChild(div);
-    });
-
     const labels = rows.map(r => r.CLS_FULLNM);
     const values = rows.map(r => Number(r.DTA_VAL));
 
