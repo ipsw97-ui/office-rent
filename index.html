@@ -1,16 +1,5 @@
-<body>
-
-<h2>오피스 임대료(실시간 OpenAPI)</h2>
-
-<canvas id="myChart"></canvas>
-
-<div id="output"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-
-const WORKER_URL = "https://fragrant-silence-2172.ipsw97.workers.dev/";
+const WORKER_URL =
+"https://fragrant-silence-2172.ipsw97.workers.dev/";
 
 fetch(WORKER_URL)
   .then(res => res.json())
@@ -20,43 +9,40 @@ fetch(WORKER_URL)
 
     console.log(rows);
 
-    // 1. 리스트 출력
+    // 1. 화면 출력
     const container = document.getElementById("output");
 
-    rows.forEach(item => {
-      const div = document.createElement("div");
-      div.innerHTML = `<b>${item.CLS_FULLNM}</b> : ${item.DTA_VAL}`;
-      container.appendChild(div);
-    });
+    if (container) {
+      rows.forEach(item => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <b>${item.CLS_FULLNM}</b> : ${item.DTA_VAL}
+        `;
+        container.appendChild(div);
+      });
+    }
 
-    // 2. 차트 데이터
-    const labels = rows.map(item => item.CLS_FULLNM);
-    const values = rows.map(item => Number(item.DTA_VAL));
+    // 2. 차트 (Chart.js 있을 때만)
+    if (window.Chart) {
 
-    new Chart(document.getElementById("myChart"), {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "오피스 임대료",
-          data: values,
-          borderWidth: 3,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
-    });
+      const labels = rows.map(r => r.CLS_FULLNM);
+      const values = rows.map(r => Number(r.DTA_VAL));
+
+      new Chart(document.getElementById("myChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "임대료",
+            data: values,
+            borderWidth: 2
+          }]
+        }
+      });
+    }
 
   })
   .catch(err => {
     console.error(err);
-    document.body.innerHTML += "<h3 style='color:red'>데이터 로딩 실패</h3>";
+    document.body.innerHTML = "데이터 로딩 실패";
   });
-
-</script>
-
-</body>
-</html>
