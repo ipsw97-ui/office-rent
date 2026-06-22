@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>부동산 통계 대시보드</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 14px;
+      background: #fff;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>부동산 통계 임대료 지표</h2>
+
+  <div class="meta">
+    STAT CODE: TT249843134237374
+  </div>
+
+  <canvas id="chart"></canvas>
+
+  <script>
+    // =========================
+    // 1. 설정값
+    // =========================
+    const API_KEY = "e5bf77ede1bb46bc8c0f75a71f3d6127";
+    const STAT_CODE = "TT249843134237374";
+
+    // ⚠️ 실제 공공데이터 API 엔드포인트로 교체 필요
+    const API_URL = "https://api.example.com/realestate/stat";
+
+    let chartInstance = null;
+
+    // =========================
+    // 2. API 호출 함수
+    // =========================
+    async function fetchData() {
+      const url =
+        `${API_URL}` +
+        `?serviceKey=${API_KEY}` +
+        `&statCode=${STAT_CODE}`;
+
+      const res = await fetch(url);
+
+      // XML일 수도 있어서 text로 받는 구조도 대비
+      const text = await res.text();
+
+      let json;
+
+      try {
+        json = JSON.parse(text);
+      } catch (e) {
+        console.error("JSON 변환 실패 (XML 가능성)", text);
+        return [];
+      }
+
+      // 데이터 구조 안전 처리
+      return json.data || [];
+    }
+
+    // =========================
+    // 3. 차트 렌더링
+    // =========================
+    async function renderChart() {
+      const data = await fetchData();
+
+      if (!data || data.length === 0) {
+        console.warn("데이터 없음");
+        return;
+      }
+
+      // 구조 가정: region + value
+      const labels = data.map(d => d.region || "N/A");
+      const values = data.map(d => Number(d.value || 0));
+
+      const ctx = document.getElementById("chart").getContext("2d");
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "임대료 지표 (천원/㎡)",
+            data: values,
+            borderWidth: 2,
+            fill: false
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: false,
+          plugins: {
+            legend: {
+              display: true
+            }
+          }
+        }
+      });
+    }
+
+    // =========================
+    // 4. 초기 실행 + 자동 업데이트
+    // =========================
+    renderChart();
+
+    // 5분마다 자동 갱신 (실시간 효과)
+    setInterval(renderChart, 300000);
+
+  </script>
+
+</body>
+</html>
