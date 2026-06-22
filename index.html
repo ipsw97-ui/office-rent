@@ -1,136 +1,120 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>부동산 통계 대시보드</title>
+    <meta charset="UTF-8">
+    <title>오피스 임대료 실시간 차트</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 14px;
-      background: #fff;
-    }
+    <style>
 
-    h2 {
-      margin-bottom: 10px;
-    }
+        body{
+            margin:30px;
+            font-family:Arial;
+        }
 
-    .meta {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 10px;
-    }
+        h2{
+            text-align:center;
+        }
 
-    canvas {
-      max-width: 100%;
-    }
-  </style>
+        canvas{
+            max-width:1200px;
+            height:600px;
+            margin:auto;
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-  <h2>부동산 통계 임대료 지표</h2>
+<h2>오피스 임대료(실시간 OpenAPI)</h2>
 
-  <div class="meta">
-    STAT CODE: TT249843134237374
-  </div>
+<canvas id="myChart"></canvas>
 
-  <canvas id="chart"></canvas>
+<script>
 
-  <script>
-    // =========================
-    // 1. 설정값
-    // =========================
-    const API_KEY = "e5bf77ede1bb46bc8c0f75a71f3d6127";
-    const STAT_CODE = "TT249843134237374";
+const API_KEY = "e5bf77ede1bb46bc8c0f75a71f3d6127";
 
-    // ⚠️ 실제 공공데이터 API 엔드포인트로 교체 필요
-    const API_URL = "https://api.example.com/realestate/stat";
+const url =
+`https://www.reb.or.kr/r-one/openapi/SttsApiTblData.do
+?KEY=${API_KEY}
+&Type=json
+&STATBL_ID=TT249843134237374
+&DTACYCLE_CD=QY
+&ITM_DATANO=100001`;
 
-    let chartInstance = null;
+fetch(url.replace(/\n/g,""))
 
-    // =========================
-    // 2. API 호출 함수
-    // =========================
-    async function fetchData() {
-      const url =
-        `${API_URL}` +
-        `?serviceKey=${API_KEY}` +
-        `&statCode=${STAT_CODE}`;
+.then(response=>response.json())
 
-      const res = await fetch(url);
+.then(result=>{
 
-      // XML일 수도 있어서 text로 받는 구조도 대비
-      const text = await res.text();
+    console.log(result);
 
-      let json;
+    /*
+    응답 확인용
 
-      try {
-        json = JSON.parse(text);
-      } catch (e) {
-        console.error("JSON 변환 실패 (XML 가능성)", text);
-        return [];
-      }
+    F12
+    Console에서 구조 확인
+    */
 
-      // 데이터 구조 안전 처리
-      return json.data || [];
-    }
+    const rows =
+        result.SttsApiTblData?.[1]?.row ||
+        result.row ||
+        [];
 
-    // =========================
-    // 3. 차트 렌더링
-    // =========================
-    async function renderChart() {
-      const data = await fetchData();
+    const labels = rows.map(item=>item.WRTTIME_IDTFR_ID);
 
-      if (!data || data.length === 0) {
-        console.warn("데이터 없음");
-        return;
-      }
+    const values = rows.map(item=>Number(item.DTA_VAL));
 
-      // 구조 가정: region + value
-      const labels = data.map(d => d.region || "N/A");
-      const values = data.map(d => Number(d.value || 0));
+    new Chart(document.getElementById("myChart"),{
 
-      const ctx = document.getElementById("chart").getContext("2d");
+        type:"line",
 
-      if (chartInstance) {
-        chartInstance.destroy();
-      }
+        data:{
 
-      chartInstance = new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: labels,
-          datasets: [{
-            label: "임대료 지표 (천원/㎡)",
-            data: values,
-            borderWidth: 2,
-            fill: false
-          }]
+            labels:labels,
+
+            datasets:[{
+
+                label:"오피스 임대료",
+
+                data:values,
+
+                borderWidth:3,
+
+                tension:0.3
+
+            }]
+
         },
-        options: {
-          responsive: true,
-          animation: false,
-          plugins: {
-            legend: {
-              display: true
-            }
-          }
+
+        options:{
+
+            responsive:true,
+
+            maintainAspectRatio:false
+
         }
-      });
-    }
 
-    // =========================
-    // 4. 초기 실행 + 자동 업데이트
-    // =========================
-    renderChart();
+    });
 
-    // 5분마다 자동 갱신 (실시간 효과)
-    setInterval(renderChart, 300000);
+})
 
-  </script>
+.catch(error=>{
+
+    console.log(error);
+
+    document.body.innerHTML +=
+    "<h3 style='color:red'>데이터를 불러오지 못했습니다.</h3>";
+
+});
+
+</script>
 
 </body>
+
 </html>
