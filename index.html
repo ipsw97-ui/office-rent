@@ -1,5 +1,21 @@
-const WORKER_URL =
-"https://fragrant-silence-2172.ipsw97.workers.dev/";
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RENT DATA</title>
+</head>
+
+<body>
+
+<h2>오피스 임대료</h2>
+
+<div id="output"></div>
+<canvas id="myChart"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const WORKER_URL = "https://fragrant-silence-2172.ipsw97.workers.dev/";
 
 fetch(WORKER_URL)
   .then(res => res.json())
@@ -9,40 +25,36 @@ fetch(WORKER_URL)
 
     console.log(rows);
 
-    // 1. 화면 출력
     const container = document.getElementById("output");
 
-    if (container) {
-      rows.forEach(item => {
-        const div = document.createElement("div");
-        div.innerHTML = `
-          <b>${item.CLS_FULLNM}</b> : ${item.DTA_VAL}
-        `;
-        container.appendChild(div);
-      });
-    }
+    rows.forEach(item => {
+      const div = document.createElement("div");
+      div.innerHTML = `${item.CLS_FULLNM} : ${item.DTA_VAL}`;
+      container.appendChild(div);
+    });
 
-    // 2. 차트 (Chart.js 있을 때만)
-    if (window.Chart) {
+    const labels = rows.map(r => r.CLS_FULLNM);
+    const values = rows.map(r => Number(r.DTA_VAL));
 
-      const labels = rows.map(r => r.CLS_FULLNM);
-      const values = rows.map(r => Number(r.DTA_VAL));
-
-      new Chart(document.getElementById("myChart"), {
-        type: "line",
-        data: {
-          labels,
-          datasets: [{
-            label: "임대료",
-            data: values,
-            borderWidth: 2
-          }]
-        }
-      });
-    }
+    new Chart(document.getElementById("myChart"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "임대료",
+          data: values,
+          borderWidth: 2
+        }]
+      }
+    });
 
   })
   .catch(err => {
     console.error(err);
     document.body.innerHTML = "데이터 로딩 실패";
   });
+
+</script>
+
+</body>
+</html>
