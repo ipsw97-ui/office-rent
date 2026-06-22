@@ -1,3 +1,15 @@
+<body>
+
+<h2>오피스 임대료(실시간 OpenAPI)</h2>
+
+<canvas id="myChart"></canvas>
+
+<div id="output"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
 const WORKER_URL = "https://fragrant-silence-2172.ipsw97.workers.dev/";
 
 fetch(WORKER_URL)
@@ -6,114 +18,45 @@ fetch(WORKER_URL)
 
     const rows = data.SttsApiTblData[1].row;
 
-    // 1. 전체 데이터 출력
     console.log(rows);
 
-    // 2. 화면에 리스트로 표시
+    // 1. 리스트 출력
     const container = document.getElementById("output");
 
     rows.forEach(item => {
       const div = document.createElement("div");
-
-      div.innerHTML = `
-        <b>${item.CLS_FULLNM}</b> :
-        ${item.DTA_VAL} ${item.UI_NM}
-      `;
-
+      div.innerHTML = `<b>${item.CLS_FULLNM}</b> : ${item.DTA_VAL}`;
       container.appendChild(div);
+    });
+
+    // 2. 차트 데이터
+    const labels = rows.map(item => item.CLS_FULLNM);
+    const values = rows.map(item => Number(item.DTA_VAL));
+
+    new Chart(document.getElementById("myChart"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "오피스 임대료",
+          data: values,
+          borderWidth: 3,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
     });
 
   })
   .catch(err => {
     console.error(err);
+    document.body.innerHTML += "<h3 style='color:red'>데이터 로딩 실패</h3>";
   });
-<body>
-
-<h2>오피스 임대료(실시간 OpenAPI)</h2>
-
-<canvas id="myChart"></canvas>
-
-<script>
-
-const API_KEY = "e5bf77ede1bb46bc8c0f75a71f3d6127";
-
-const url =
-`https://www.reb.or.kr/r-one/openapi/SttsApiTblData.do
-?KEY=${API_KEY}
-&Type=json
-&STATBL_ID=TT249843134237374
-&DTACYCLE_CD=QY
-&ITM_DATANO=100001`;
-
-fetch(url.replace(/\n/g,""))
-
-.then(response=>response.json())
-
-.then(result=>{
-
-    console.log(result);
-
-    /*
-    응답 확인용
-
-    F12
-    Console에서 구조 확인
-    */
-
-    const rows =
-        result.SttsApiTblData?.[1]?.row ||
-        result.row ||
-        [];
-
-    const labels = rows.map(item=>item.WRTTIME_IDTFR_ID);
-
-    const values = rows.map(item=>Number(item.DTA_VAL));
-
-    new Chart(document.getElementById("myChart"),{
-
-        type:"line",
-
-        data:{
-
-            labels:labels,
-
-            datasets:[{
-
-                label:"오피스 임대료",
-
-                data:values,
-
-                borderWidth:3,
-
-                tension:0.3
-
-            }]
-
-        },
-
-        options:{
-
-            responsive:true,
-
-            maintainAspectRatio:false
-
-        }
-
-    });
-
-})
-
-.catch(error=>{
-
-    console.log(error);
-
-    document.body.innerHTML +=
-    "<h3 style='color:red'>데이터를 불러오지 못했습니다.</h3>";
-
-});
 
 </script>
 
 </body>
-
 </html>
